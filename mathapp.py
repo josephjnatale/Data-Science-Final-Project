@@ -39,9 +39,22 @@ class BGWidget(Widget):
         super(BGWidget, self).__init__(**kwargs)
 
         with self.canvas:
+        		#Left num
+                Color(1,0,.8,1)
+                Rectangle(pos=(20, 190), size=(300,300))
                 Color(1,1,1,1)
-                Rectangle(pos=(30, 200), size=(280,280))
+                Rectangle(pos=(30, 200), size=(280,280)) 
+                #Right num
+                Color(1,0,.8,1)
+                Rectangle(pos=(470, 190), size=(300,300))            
+                Color(1,1,1,1)
                 Rectangle(pos=(480, 200), size=(280,280))
+                
+                #symbol
+
+                Color(0,1,.8,1)
+                Rectangle(pos=(320, 270), size=(150,150))            
+                Color(1,1,1,1)
                 Rectangle(pos=(325, 275), size=(140,140))
                 
 
@@ -92,8 +105,8 @@ class PaintApp(App):
             fullnum2 = Image.open(sh[:-4]+"num2.png")
             
             #Convert cropped images to 8px X 8px 
-            smallnum1 = fullnum1.resize((8,8), Image.BICUBIC )
-            smallnum2 = fullnum2.resize((8,8), Image.BICUBIC )
+            smallnum1 = fullnum1.resize((8,8), Image.BILINEAR )
+            smallnum2 = fullnum2.resize((8,8), Image.BILINEAR )
           
           
             #Convert small images to gray scale and turn them into numpy arrays
@@ -110,12 +123,30 @@ class PaintApp(App):
             #convert fbit's to single array instead of 2d(image)
             pred1 = clf.predict([fbit1.ravel()])
             pred2=clf.predict([fbit2.ravel()])
-            print(pred1,pred2)
+            print(pred1, pred2)
+            ftoup1 = fbit1, pred1
+            ftoup2 = fbit2, pred2
 
-           # print(digits.data[pred])
-            #plt.imshow(smallnum1, cmap= plt.get_cmap('gray'))
-            plt.imshow(fbit2, cmap= plt.get_cmap('gray'))            
+            #print(digits.data[pred1])
+            #print(digits.data[pred])
+            plt.figure(figsize=(14,8))
+            for index, (image, label) in enumerate(zip([fbit1, fbit2], [pred1, pred2])):
+                plt.subplot(2, 2, index + 1)
+                plt.imshow(image, cmap= plt.get_cmap('gray'))       
+                plt.title('Prediction: %i\n' % label, fontsize = 15  )   
+                plt.axis('off')
+
+            plt.subplot(2,2, 3)
+            plt.imshow(np.reshape(digits.data[pred1],(-1, 8)), cmap = plt.get_cmap('gray'))
+            plt.title('similar to: %i\n' % pred1)
+            plt.axis('off')
+            plt.subplot(2,2, 4)
+            plt.imshow(np.reshape(digits.data[pred2],(-1, 8)), cmap = plt.get_cmap('gray'))
+            plt.title('similar to: %i\n' % pred2)
+            plt.axis('off')
             plt.show()
+
+            
             return fbit1, fbit2
 
 
