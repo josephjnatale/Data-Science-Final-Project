@@ -12,6 +12,13 @@ import numpy as np
 from numpy import interp
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+from sklearn import svm, datasets
+from sklearn.metrics import accuracy_score
+
+#Build model for digit recognition
+digits = datasets.load_digits()
+clf = svm.SVC(gamma=0.001, C=100)
+clf.fit(digits.data[:], digits.target[:])
 
 class PaintWidget(Widget):
 
@@ -51,7 +58,7 @@ class PaintApp(App):
         clearbtn = Button(text='Clear')
         clearbtn.bind(on_release=self.clear_canvas)
 
-        savebtn = Button(text='Save', pos=(100, 0))
+        savebtn = Button(text='Solve', pos=(100, 0))
         savebtn.bind(on_release=self.screengrab)
        
         parent.add_widget(self.rectBG)
@@ -66,51 +73,52 @@ class PaintApp(App):
        self.painter.canvas.clear()
 
     def screengrab(self,*largs):
-
+    		#take a screen shot
             sh = Window.screenshot("screenshot.png")
             ti = Image.open(sh)
             width, height = ti.size
+
+            #copy image
             img=ti.copy()
+
+            #crop out the two number in white boxes and saved respectively
             num1 = img.crop((30, 120, 310, 400))
             num1.save(sh[:-4]+"num1.png")
             num2 = img.crop((480, 120, 760, 400))
             num2.save(sh[:-4]+"num2.png")
 
+            #Open cropped images
             fullnum1 = Image.open(sh[:-4]+"num1.png")
-            print(fullnum1.size)
+            fullnum2 = Image.open(sh[:-4]+"num2.png")
+            
+            #Convert cropped images to 8px X 8px 
             smallnum1 = fullnum1.resize((8,8), Image.BICUBIC )
-            print(smallnum1.size)
-
+            smallnum2 = fullnum2.resize((8,8), Image.BICUBIC )
+          
+          
+            #Convert small images to gray scale and turn them into numpy arrays
             smallnum1gray= smallnum1.convert('L')
             smallnum1gray= np.array(smallnum1gray)
-           
-            print(smallnum1gray)
-            fbit=np.floor(interp(smallnum1gray, [0,255],[16,0]))
-           
-            print(fbit)
-            plt.imshow(smallnum1, cmap= plt.get_cmap('gray'))
+            smallnum2gray= smallnum2.convert('L')
+            smallnum2gray= np.array(smallnum2gray)
+
+            #convert 8 bit grayscale to 4 bit
+            fbit1=np.floor(interp(smallnum1gray, [0,255],[16,0]))
+            fbit2=np.floor(interp(smallnum2gray, [0,255],[16,0]))
+           # print(fbit2.ravel())
+            
+            #convert fbit's to single array instead of 2d(image)
+            pred1 = clf.predict([fbit1.ravel()])
+            pred2=clf.predict([fbit2.ravel()])
+            print(pred1,pred2)
+
+           # print(digits.data[pred])
+            #plt.imshow(smallnum1, cmap= plt.get_cmap('gray'))
+            plt.imshow(fbit2, cmap= plt.get_cmap('gray'))            
             plt.show()
-            return fbit, 0
+            return fbit1, fbit2
 
-'''
-def rgb2gray(rgb):
-    
-    r, g, b = rgb[:,:,0], rgb[:,:,1], rgb[:,:,2]
-    gray = 0.2989 * r + 0.5870 * g + 0.1140 * b
- 
-    return gray
 
-testimg = mpimg.imread("screenshot0001num1.png")
-print("img size: ", testimg.size)
-
-testimg = testimg.resize((28,28))
-print("img size: ", testimg.size)
-
-gray = rgb2gray(img)    
-plt.imshow(gray, cmap = plt.get_cmap('gray'))
-plt.show()
-
-'''
 
 
 
