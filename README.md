@@ -4,6 +4,9 @@ Created a model to recognize hand written digits, using Kivy this app will be ab
 libraries used:
 -Kivy
 -Pillow
+-Numpy
+-Sklearn
+-Matplotlib
 
 
 python mathapp.py
