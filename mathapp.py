@@ -6,13 +6,17 @@ from kivy.uix.button import *
 from kivy.graphics import *
 from kivy.core.window import Window
 kivy.require('1.9.0')
-from PIL import Image
-
+from PIL import *
+from PIL.ImageOps import grayscale
+import numpy as np
+from numpy import interp
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 
 class PaintWidget(Widget):
 
     def on_touch_down(self, touch):
-        color = (random(), 1, 1)
+        color = (0,0,0, 1)
         with self.canvas:
             Color(*color, mode='hsv')
             d = 80.
@@ -72,8 +76,41 @@ class PaintApp(App):
             num2 = img.crop((480, 120, 760, 400))
             num2.save(sh[:-4]+"num2.png")
 
+            fullnum1 = Image.open(sh[:-4]+"num1.png")
+            print(fullnum1.size)
+            smallnum1 = fullnum1.resize((8,8), Image.BICUBIC )
+            print(smallnum1.size)
 
+            smallnum1gray= smallnum1.convert('L')
+            smallnum1gray= np.array(smallnum1gray)
+           
+            print(smallnum1gray)
+            fbit=np.floor(interp(smallnum1gray, [0,255],[16,0]))
+           
+            print(fbit)
+            plt.imshow(smallnum1, cmap= plt.get_cmap('gray'))
+            plt.show()
+            return fbit, 0
 
+'''
+def rgb2gray(rgb):
+    
+    r, g, b = rgb[:,:,0], rgb[:,:,1], rgb[:,:,2]
+    gray = 0.2989 * r + 0.5870 * g + 0.1140 * b
+ 
+    return gray
+
+testimg = mpimg.imread("screenshot0001num1.png")
+print("img size: ", testimg.size)
+
+testimg = testimg.resize((28,28))
+print("img size: ", testimg.size)
+
+gray = rgb2gray(img)    
+plt.imshow(gray, cmap = plt.get_cmap('gray'))
+plt.show()
+
+'''
 
 
 
