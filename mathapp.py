@@ -191,6 +191,18 @@ class PaintApp(App):
             print(pnum1, pnum2, parth)
             #print(digits.data[pred1])
             #print(digits.data[pred])
+            print("answer:")
+            if parth ==1:
+            		print(pnum1+pnum2)
+            		
+            if parth ==2:
+            		print(pnum1 - pnum2)
+
+            if parth ==3:
+            		print(pnum1 * pnum2)
+
+            if parth ==4: 
+            		print(pnum1 / pnum2)
 
             #add plot of drawn image vs what the model that it was
             plt.figure(figsize=(14,8))
