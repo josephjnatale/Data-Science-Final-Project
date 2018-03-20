@@ -7,6 +7,9 @@ libraries used:
 -Numpy
 -Sklearn
 -Matplotlib
+-scipy
+
+pip install kivy Pillow numpy scipy sklearn matplotlib
 
 
 python mathapp.py
