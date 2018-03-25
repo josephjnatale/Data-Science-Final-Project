@@ -1,5 +1,5 @@
 # Data-Science-Midterm
-Created a model to recognize hand written digits. Using Kivy, this app will be able to solve simple math problems.
+Using SciKit learn's support vector machines to create models that are able to recognize hand written digits. Using Kivy, this app is able to solve simple math problems that are drawn on screen.
 
 libraries used:
 -Kivy
@@ -8,10 +8,6 @@ libraries used:
 -Sklearn
 -Matplotlib
 -scipy
-
-pip install kivy Pillow numpy scipy sklearn matplotlib
-
-
 
 pip install --upgrade pip wheel setuptools
 pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew
