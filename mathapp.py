@@ -7,6 +7,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import *
 from kivy.graphics import *
 from kivy.core.window import Window
+from kivy.core.text import Label as CoreLabel
 from random import random
 from PIL import *
 from PIL.ImageOps import grayscale
@@ -90,23 +91,23 @@ class BGWidget(Widget):
         super(BGWidget, self).__init__(**kwargs)
 
         with self.canvas:
-        		#Left num
-                Color(1,0,.8,1)
-                Rectangle(pos=(20, 190), size=(300,300))
-                Color(1,1,1,1)
-                Rectangle(pos=(30, 200), size=(280,280)) 
-                #Right num
-                Color(1,0,.8,1)
-                Rectangle(pos=(470, 190), size=(300,300))            
-                Color(1,1,1,1)
-                Rectangle(pos=(480, 200), size=(280,280))
-                
-                #symbol
+         	#Left num
+            Color(1,0,.8,1)
+            Rectangle(pos=(20, 190), size=(300,300))
+            Color(1,1,1,1)
+            Rectangle(pos=(30, 200), size=(280,280)) 
+            #Right num
+            Color(1,0,.8,1)
+            Rectangle(pos=(470, 190), size=(300,300))            
+            Color(1,1,1,1)
+            Rectangle(pos=(480, 200), size=(280,280))
+           
+            #symbol
+            Color(0,1,.8,1)
+            Rectangle(pos=(320, 270), size=(150,150))            
+            Color(1,1,1,1)
+            Rectangle(pos=(325, 275), size=(140,140))
 
-                Color(0,1,.8,1)
-                Rectangle(pos=(320, 270), size=(150,150))            
-                Color(1,1,1,1)
-                Rectangle(pos=(325, 275), size=(140,140))
                 
 
 class PaintApp(App):
@@ -115,16 +116,23 @@ class PaintApp(App):
     def build(self):
         parent = Widget()
 
+        #Create ping widget and rectangle background widget
         self.painter = PaintWidget()
         self.rectBG = BGWidget()
 
-       
+        #Create buttons in the bottom left of the screen: clear and solve
         clearbtn = Button(text='Clear')
         clearbtn.bind(on_release=self.clear_canvas)
 
         savebtn = Button(text='Solve', pos=(100, 0))
-        savebtn.bind(on_release=self.screengrab)
+        savebtn.bind(on_release=self.solve)
+
+
+      
+
+
        	
+       	#add all the widgets to the parent widget, added based on layer
         parent.add_widget(self.rectBG)
         parent.add_widget(self.painter)
         parent.add_widget(savebtn)
@@ -133,49 +141,58 @@ class PaintApp(App):
 
         return parent
 
+    def solve(self, obj):
+        predictedvalues=PaintApp.screengrab(self)
+        predanswer = predictedvalues[3]
+        print(predanswer)
+
+
+    #Clear the canvas
     def clear_canvas(self, obj):
+
        self.painter.canvas.clear()
 
+    #Gets the screen of the canvas, and return 3 variables
+    #Returns first predicted number, 2nd predicted number, and predicted symbol[1-4], predictedanswer
     def screengrab(self,*largs):
-    		#take a screen shot
+    		#take a screen shot of the window and save it as sh, and then open that png as ti
             sh = Window.screenshot("screenshot.png")
             ti = Image.open(sh)
+            #get the width and height of the png
             width, height = ti.size
 
-            #copy image
+            #copy image 
             img=ti.copy()
 
             #crop out the two number and symbol in white boxes and saved respectively
             num1 = img.crop((30, 120, 310, 400))
-            num1.save(sh[:-4]+"num1.png")
+           	#num1.save(sh[:-4]+"num1.png")
             num2 = img.crop((480, 120, 760, 400))
-            num2.save(sh[:-4]+"num2.png")
+            #num2.save(sh[:-4]+"num2.png")
 
+            #Crop the middle small square for tha symbol
             arthm = img.crop((325,185, 465, 325))
-            arthm.save(sh[:-4]+"arthm.png")
+            #arthm.save(sh[:-4]+"arthm.png")
 
-            #Open cropped images
-            fullnum1 = Image.open(sh[:-4]+"num1.png")
-            fullnum2 = Image.open(sh[:-4]+"num2.png")
-            
+           
             #Convert cropped images to 8px X 8px 
-            smallnum1 = fullnum1.resize((8,8), Image.BILINEAR )
-            smallnum2 = fullnum2.resize((8,8), Image.BILINEAR )
+            smallnum1 = num1.resize((8,8), Image.BILINEAR )
+            smallnum2 = num2.resize((8,8), Image.BILINEAR )
             smallarthm = arthm.resize((8,8), Image.BILINEAR)
           
           
             #Convert small images to gray scale and turn them into numpy arrays
             smallnum1gray= smallnum1.convert('L')
             smallnum1gray= np.array(smallnum1gray)
+
             smallnum2gray= smallnum2.convert('L')
             smallnum2gray= np.array(smallnum2gray)
 
             smallarthmgray = smallarthm.convert('L')
-            smallarthmgray.save(sh[:-4]+"arthm.png")
             smallarthmgray = np.array(smallarthmgray)
 
 
-            #convert 8 bit grayscale to 4 bit
+            #convert 8 bit color to 4 bit color to match the scikit learn digit data
             fbit1=np.floor(interp(smallnum1gray, [0,255],[16,0]))
             fbit2=np.floor(interp(smallnum2gray, [0,255],[16,0]))
             smallarthmgray=np.floor(interp(smallarthmgray, [0,255], [16,0]))
@@ -188,23 +205,30 @@ class PaintApp(App):
             pred2=clf.predict([fbit2.ravel()])
 
             pnum1, pnum2, parth = pred1, pred2, predarthm
-            print(pnum1, pnum2, parth)
+            panswer=0
+            #print(pnum1, pnum2, parth)
             #print(digits.data[pred1])
             #print(digits.data[pred])
-            print("answer:")
+            
+            #{1,2,3,4}={+,-,x,/}
             if parth ==1:
-            		print(pnum1+pnum2)
+            		print(pnum1,' + ',pnum2)
+            		panswer=pnum1+pnum2
             		
             if parth ==2:
-            		print(pnum1 - pnum2)
+            		print(pnum1 ,' - ', pnum2)
+            		panswer=pnum1 -pnum2
 
             if parth ==3:
-            		print(pnum1 * pnum2)
+            		print(pnum1 ,' x ', pnum2)
+            		panswer=pnum1* pnum2
 
             if parth ==4: 
-            		print(pnum1 / pnum2)
+            		print(pnum1 ,' / ', pnum2)
+            		panswer=pnum1/pnum2
 
-            #add plot of drawn image vs what the model that it was
+            print("answer:")
+            #add plot of drawn image vs what the model that it was,
             plt.figure(figsize=(14,8))
             for index, (image, label) in enumerate(zip([fbit1, fbit2], [pred1, pred2])):
                 plt.subplot(2, 2, index + 1)
@@ -220,16 +244,16 @@ class PaintApp(App):
             plt.title('similar to: %i\n' % pred2)
             plt.axis('off')
 
-            #Show the plots
-            plt.show()
+            #Show the plots, must close plot first before using the app again
+            #plt.show()
 
             
-            return pnum1, pnum2, parth
+            return pnum1, pnum2, parth, panswer
 
 
 
 
 
 paint = PaintApp()
-
+#run the app
 paint.run()
