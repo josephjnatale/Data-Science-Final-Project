@@ -16,7 +16,7 @@ pip install kivy Pillow numpy scipy sklearn matplotlib
 pip install --upgrade pip wheel setuptools
 pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew
 pip install kivy.deps.gstreamer kivy.deps.angle kivy
-pip install Pillow Numpy sklearn scipi matplotlib
+pip install Pillow Numpy sklearn scipy matplotlib
 
 
 python mathapp.py
